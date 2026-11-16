@@ -1,0 +1,33 @@
+groups:
+  - name: plattform
+    rules:
+      - alert: Watchdog
+        expr: vector(1)
+        labels:
+          severity: none
+        annotations:
+          summary: "Feuert immer. Fehlt er, ist die Alarmkette kaputt."
+      - alert: NodeExporterDown
+        expr: up{job="node"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          team: plattform
+        annotations:
+          summary: "Keine Metriken von {{ $labels.instance }}"
+      - alert: HostHighLoad
+        expr: node_load1 > on() count(node_cpu_seconds_total{mode="idle"}) * 2
+        for: 2m
+        labels:
+          severity: warning
+          team: plattform
+        annotations:
+          summary: "Load {{ $value }} auf {{ $labels.instance }}"
+      - alert: KarmaUpstreamDown
+        expr: karma_alertmanager_up == 0
+        for: 2m
+        labels:
+          severity: warning
+          team: plattform
+        annotations:
+          summary: "karma erreicht Alertmanager {{ $labels.alertmanager }} nicht"

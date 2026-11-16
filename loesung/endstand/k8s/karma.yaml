@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: karma
+  namespace: monitoring
+data:
+  karma.yaml: |
+    karma:
+      name: k3s
+    alertmanager:
+      interval: 30s
+      servers:
+        - name: k3s-0
+          cluster: k3s
+          uri: http://alertmanager-kps-alertmanager-0.alertmanager-operated:9093
+          external_uri: http://172.16.0.61:30093
+          proxy: true
+          healthcheck:
+            filters:
+              watchdog:
+                - alertname=Watchdog
+        - name: k3s-1
+          cluster: k3s
+          uri: http://alertmanager-kps-alertmanager-1.alertmanager-operated:9093
+          external_uri: http://172.16.0.61:30093
+          proxy: true
+          healthcheck:
+            filters:
+              watchdog:
+                - alertname=Watchdog
+    history:
+      rewrite:
+        - source: 'http://172.16.0.61:30090'
+          uri: 'http://kps-prometheus:9090'
+    labels:
+      strip: [prometheus, endpoint, service]
+    ui:
+      multiGridLabel: namespace
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karma
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: karma
+  template:
+    metadata:
+      labels:
+        app: karma
+    spec:
+      containers:
+        - name: karma
+          image: ghcr.io/prymitive/karma:v0.134
+          env:
+            - name: CONFIG_FILE
+              value: /etc/karma/karma.yaml
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+          resources:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/karma
+      volumes:
+        - name: config
+          configMap:
+            name: karma
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: karma
+  namespace: monitoring
+spec:
+  type: NodePort
+  selector:
+    app: karma
+  ports:
+    - port: 8080
+      nodePort: 30800

@@ -1,0 +1,41 @@
+groups:
+  - name: notes
+    rules:
+      - alert: NotesApiDown
+        expr: up{job="notes-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: notes
+        annotations:
+          summary: "notes-api auf {{ $labels.instance }} antwortet nicht"
+          runbook_url: "https://wiki.example.com/runbooks/notes-api-down"
+      - alert: NotesDbDown
+        expr: notes_db_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: notes
+        annotations:
+          summary: "notes-api erreicht Postgres nicht"
+      - alert: NotesHighErrorRate
+        expr: |
+          sum(rate(notes_http_requests_total{path="/notes",code=~"5.."}[2m]))
+            / sum(rate(notes_http_requests_total{path="/notes"}[2m])) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          team: notes
+        annotations:
+          summary: "{{ $value | humanizePercentage }} der Anfragen an /notes scheitern"
+      - alert: NotesSlow
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(notes_http_request_duration_seconds_bucket{path="/notes"}[2m]))
+          ) > 0.25
+        for: 1m
+        labels:
+          severity: warning
+          team: notes
+        annotations:
+          summary: "95 % der Anfragen an /notes dauern bis zu {{ $value | humanizeDuration }}"

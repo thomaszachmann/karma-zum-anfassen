@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:18.7
+    environment:
+      POSTGRES_USER: notes
+      POSTGRES_PASSWORD: lab-db-pw-123
+      POSTGRES_DB: notes
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "notes"]
+      interval: 5s
+
+  migrate:
+    image: notes-api:0.8.0
+    command: ["migrate"]
+    environment:
+      NOTES_DB_URL: postgres://notes:lab-db-pw-123@postgres:5432/notes?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notes-api:
+    image: notes-api:0.8.0
+    environment:
+      NOTES_DB_URL: postgres://notes:lab-db-pw-123@postgres:5432/notes?sslmode=disable
+      NOTES_API_KEY: lab-api-key-123
+      NOTES_ERROR_RATE: ${NOTES_ERROR_RATE:-0}
+      NOTES_DELAY: ${NOTES_DELAY:-0s}
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  last:
+    image: curlimages/curl:8.23.0
+    entrypoint: ["sh", "-c"]
+    command: ["while true; do curl -s -o /dev/null -m 5 http://notes-api:8080/notes; sleep 0.5; done"]
+    depends_on:
+      - notes-api
+
+volumes:
+  pgdata:

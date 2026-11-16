@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaputt
+  namespace: lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaputt
+  template:
+    metadata:
+      labels:
+        app: kaputt
+    spec:
+      containers:
+        - name: kaputt
+          image: busybox:1.37
+          command: ["sh", "-c", "echo Konfiguration fehlt; exit 1"]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab
+  namespace: lab
+spec:
+  groups:
+    - name: lab
+      rules:
+        - alert: LabPodCrashLoop
+          expr: max_over_time(kube_pod_container_status_waiting_reason{namespace="lab", reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 1m
+          labels:
+            severity: warning
+            team: notes
+          annotations:
+            summary: "{{ $labels.pod }} hängt im CrashLoopBackOff"

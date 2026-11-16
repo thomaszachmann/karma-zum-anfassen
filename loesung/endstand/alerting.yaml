@@ -1,0 +1,61 @@
+services:
+  alertmanager:
+    image: prom/alertmanager:v0.35.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --web.external-url=http://${VM_IP}:9093
+      - --cluster.listen-address=0.0.0.0:9094
+      - --cluster.peer=alertmanager:9094
+      - --cluster.peer=alertmanager-2:9094
+      - --cluster.peer=alertmanager-3:9094
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - amdata:/alertmanager
+    ports:
+      - "9093:9093"
+
+  alertmanager-2:
+    image: prom/alertmanager:v0.35.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --web.external-url=http://${VM_IP}:9094
+      - --cluster.listen-address=0.0.0.0:9094
+      - --cluster.peer=alertmanager:9094
+      - --cluster.peer=alertmanager-2:9094
+      - --cluster.peer=alertmanager-3:9094
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - amdata2:/alertmanager
+    ports:
+      - "9094:9093"
+
+  alertmanager-3:
+    image: prom/alertmanager:v0.35.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --web.external-url=http://${VM_IP}:9095
+      - --cluster.listen-address=0.0.0.0:9094
+      - --cluster.peer=alertmanager:9094
+      - --cluster.peer=alertmanager-2:9094
+      - --cluster.peer=alertmanager-3:9094
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - amdata3:/alertmanager
+    ports:
+      - "9095:9093"
+
+  alarm-log:
+    image: python:3.14.10-alpine
+    command: ["python", "-u", "/alarm_log.py"]
+    volumes:
+      - ./code/alarm-log/alarm_log.py:/alarm_log.py:ro
+    ports:
+      - "5001:5001"
+
+volumes:
+  amdata:
+  amdata2:
+  amdata3:

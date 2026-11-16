@@ -1,0 +1,14 @@
+services:
+  karma:
+    image: ghcr.io/prymitive/karma:v0.134
+    environment:
+      CONFIG_FILE: /etc/karma/karma.yaml
+    volumes:
+      - ./karma:/etc/karma:ro
+
+  caddy:
+    image: caddy:2.11.9
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    ports:
+      - "8000:8000"

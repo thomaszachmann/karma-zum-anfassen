@@ -1,0 +1,84 @@
+global:
+  smtp_smarthost: mailpit:1025
+  smtp_from: alertmanager@am-lab.example
+  smtp_require_tls: false
+
+templates:
+  - /etc/alertmanager/templates/*.tmpl
+
+route:
+  receiver: standard
+  group_by: [alertname, env]
+  group_wait: 30s
+  group_interval: 2m
+  repeat_interval: 4h
+  routes:
+    - receiver: archiv
+      continue: true
+    - matchers: [severity="info"]
+      receiver: nirgendwo
+    - matchers: [alertname="Watchdog"]
+      receiver: watchdog
+      group_interval: 30s
+      repeat_interval: 1m
+    - matchers: [team="notes"]
+      receiver: team-notes
+      routes:
+        - matchers: [severity="critical"]
+          receiver: notes-bereitschaft
+          group_wait: 10s
+    - matchers: [team="plattform"]
+      receiver: team-plattform
+      mute_time_intervals: [feierabend]
+      routes:
+        - matchers: [severity="critical"]
+          receiver: plattform-bereitschaft
+    - receiver: standard
+
+time_intervals:
+  - name: feierabend
+    time_intervals:
+      - weekdays: ["monday:friday"]
+        times:
+          - start_time: "18:00"
+            end_time: "24:00"
+        location: Europe/Berlin
+
+inhibit_rules:
+  - source_matchers: [alertname="NotesDbDown"]
+    target_matchers: [team="notes", alertname!="NotesDbDown"]
+    equal: [env]
+  - source_matchers: [alertname="NodeExporterDown"]
+    target_matchers: [alertname="HostHighLoad"]
+    equal: [instance, env]
+
+receivers:
+  - name: nirgendwo
+  - name: standard
+    webhook_configs:
+      - url: http://alarm-log:5001/standard
+  - name: archiv
+    webhook_configs:
+      - url: http://alarm-log:5001/archiv
+  - name: watchdog
+    webhook_configs:
+      - url: http://alarm-log:5001/watchdog
+  - name: team-notes
+    webhook_configs:
+      - url: http://alarm-log:5001/team-notes
+    email_configs:
+      - to: team-notes@am-lab.example
+        send_resolved: true
+        headers:
+          Subject: '{{ template "notes.subject" . }}'
+        text: '{{ template "notes.text" . }}'
+        html: ''
+  - name: notes-bereitschaft
+    webhook_configs:
+      - url: http://alarm-log:5001/notes-bereitschaft
+  - name: plattform-bereitschaft
+    webhook_configs:
+      - url: http://alarm-log:5001/plattform-bereitschaft
+  - name: team-plattform
+    webhook_configs:
+      - url: http://alarm-log:5001/team-plattform

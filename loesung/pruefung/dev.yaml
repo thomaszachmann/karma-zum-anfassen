@@ -1,0 +1,33 @@
+services:
+  notes-api-dev:
+    image: notes-api:0.8.0
+    environment:
+      NOTES_API_KEY: lab-api-key-123
+      NOTES_ERROR_RATE: "0.2"
+
+  last-dev:
+    image: curlimages/curl:8.23.0
+    entrypoint: ["sh", "-c"]
+    command: ["while true; do curl -s -o /dev/null -m 5 http://notes-api-dev:8080/notes; sleep 1; done"]
+
+  prometheus-dev:
+    image: prom/prometheus:v3.16.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.external-url=http://${VM_IP}:9091
+    volumes:
+      - ./dev/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+    ports:
+      - "9091:9090"
+
+  alertmanager-dev:
+    image: prom/alertmanager:v0.35.0
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --web.external-url=http://${VM_IP}:9096
+      - --cluster.listen-address=
+    volumes:
+      - ./dev/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9096:9093"

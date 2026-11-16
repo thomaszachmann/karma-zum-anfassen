@@ -1,0 +1,9 @@
+name: am-lab
+
+include:
+  - notes.yaml
+  - monitoring.yaml
+  - alerting.yaml
+  - mail.yaml
+  - dashboard.yaml
+  - dev.yaml

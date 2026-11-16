@@ -1,0 +1,8 @@
+route:
+  receiver: dev
+  group_by: [alertname]
+
+receivers:
+  - name: dev
+    webhook_configs:
+      - url: http://alarm-log:5001/dev

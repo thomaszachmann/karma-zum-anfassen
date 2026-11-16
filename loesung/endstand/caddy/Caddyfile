@@ -1,0 +1,9 @@
+:8000 {
+	basic_auth {
+		alice $2a$14$tPTS0zo18W8cwYc.BVfweeSHNzfIzGqdSmGiDyyvbEdjlstYcXHba
+		bob $2a$14$tPTS0zo18W8cwYc.BVfweeSHNzfIzGqdSmGiDyyvbEdjlstYcXHba
+	}
+	reverse_proxy karma:8080 {
+		header_up X-Auth-User {http.auth.user.id}
+	}
+}

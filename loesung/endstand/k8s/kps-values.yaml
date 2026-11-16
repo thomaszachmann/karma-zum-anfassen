@@ -1,0 +1,33 @@
+fullnameOverride: kps
+
+grafana:
+  enabled: false
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+  prometheusSpec:
+    externalUrl: http://172.16.0.61:30090
+    retention: 2d
+    ruleSelectorNilUsesHelmValues: false
+
+alertmanager:
+  service:
+    type: NodePort
+    nodePort: 30093
+  alertmanagerSpec:
+    replicas: 2
+    externalUrl: http://172.16.0.61:30093
+  config:
+    route:
+      group_by: [namespace, alertname]
+
+kubeProxy:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false

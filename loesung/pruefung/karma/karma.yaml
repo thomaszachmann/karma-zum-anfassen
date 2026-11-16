@@ -1,0 +1,134 @@
+karma:
+  name: am-lab
+
+alertmanager:
+  interval: 30s
+  servers:
+    - name: prod-1
+      cluster: prod
+      uri: http://alertmanager:9093
+      external_uri: http://172.16.0.61:9093
+      timeout: 10s
+      proxy: true
+      healthcheck:
+        filters:
+          prometheus-prod:
+            - alertname=Watchdog
+            - env=prod
+    - name: prod-2
+      cluster: prod
+      uri: http://alertmanager-2:9093
+      external_uri: http://172.16.0.61:9094
+      timeout: 10s
+      proxy: true
+      healthcheck:
+        filters:
+          prometheus-prod:
+            - alertname=Watchdog
+            - env=prod
+    - name: prod-3
+      cluster: prod
+      uri: http://alertmanager-3:9093
+      external_uri: http://172.16.0.61:9095
+      timeout: 10s
+      proxy: true
+      healthcheck:
+        filters:
+          prometheus-prod:
+            - alertname=Watchdog
+            - env=prod
+    - name: dev
+      uri: http://alertmanager-dev:9093
+      external_uri: http://172.16.0.61:9096
+      timeout: 10s
+      readonly: true
+      healthcheck:
+        filters:
+          prometheus-dev:
+            - alertname=Watchdog
+            - env=dev
+
+log:
+  config: true
+
+receivers:
+  strip:
+    - archiv
+    - nirgendwo
+
+labels:
+  order: [alertname, env, team, severity]
+  strip: [job]
+  color:
+    unique: [team]
+    custom:
+      severity:
+        - value: critical
+          color: "#d9534f"
+        - value: warning
+          color: "#f0ad4e"
+        - value_re: ".*"
+          color: "#5bc0de"
+
+annotations:
+  order: [summary]
+  actions: [runbook_url]
+
+grid:
+  sorting:
+    order: label
+    label: severity
+    reverse: false
+    customValues:
+      labels:
+        severity:
+          critical: 1
+          warning: 2
+          info: 3
+          none: 4
+
+ui:
+  multiGridLabel: "@cluster"
+
+filters:
+  default:
+    - "@state=active"
+    - alertname!=Watchdog
+
+alertAcknowledgement:
+  enabled: true
+  duration: 15m
+  author: karma
+  comment: "ACK! In Arbeit seit %NOW%"
+
+silences:
+  expired: 10m
+  comments:
+    linkDetect:
+      rules:
+        - regex: "(NOTES-[0-9]+)"
+          uriTemplate: https://tickets.example.com/browse/$1
+
+authentication:
+  header:
+    name: X-Auth-User
+    value_re: ^(.+)$
+
+authorization:
+  acl:
+    silences: /etc/karma/acls.yaml
+  groups:
+    - name: admins
+      members: [alice]
+    - name: notes
+      members: [bob]
+    - name: plattform
+      members: [carol]
+
+history:
+  enabled: true
+  rewrite:
+    - source: 'http://172.16.0.61:9090'
+      uri: 'http://prometheus:9090'
+    - source: 'http://172.16.0.61:9091'
+      uri: 'http://prometheus-dev:9090'

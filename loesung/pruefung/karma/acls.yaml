@@ -1,0 +1,41 @@
+rules:
+  - action: block
+    reason: Regex-Silences sind gesperrt, nimm konkrete Werte
+    scope:
+      filters:
+        - name_re: .+
+          value_re: .+
+          isRegex: true
+  - action: allow
+    reason: Admins dürfen alles
+    scope:
+      groups: [admins]
+  - action: block
+    reason: Kritische Alarme schaltet nur die Bereitschaft stumm
+    scope:
+      groups: [notes]
+      filters:
+        - name: severity
+          value: critical
+  - action: requireMatcher
+    reason: Team notes muss team=notes in jede Silence schreiben
+    scope:
+      groups: [notes]
+    matchers:
+      required:
+        - name: team
+          value: notes
+          isEqual: true
+  - action: requireMatcher
+    reason: Team plattform muss team=plattform in jede Silence schreiben
+    scope:
+      groups: [plattform]
+    matchers:
+      required:
+        - name: team
+          value: plattform
+          isEqual: true
+  - action: block
+    reason: Löschen dürfen nur Admins
+    scope:
+      operations: [delete]

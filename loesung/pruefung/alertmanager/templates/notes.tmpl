@@ -1,0 +1,14 @@
+{{ define "notes.subject" -}}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]
+{{- " " }}{{ .CommonLabels.alertname }} ({{ .CommonLabels.env }}, Team {{ .CommonLabels.team }})
+{{- end }}
+
+{{ define "notes.text" -}}
+{{ range .Alerts -}}
+{{ if eq .Status "firing" }}FEUERT{{ else }}BEHOBEN{{ end }}: {{ .Annotations.summary }}
+  seit:    {{ .StartsAt.Format "02.01.2006 15:04" }} UTC
+  Labels:  {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+  Runbook: {{ or .Annotations.runbook_url "keins" }}
+{{ end -}}
+Alertmanager: {{ .ExternalURL }}
+{{- end }}
