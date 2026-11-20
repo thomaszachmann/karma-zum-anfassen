@@ -1,31 +1,33 @@
-# Alertmanager und karma zum Anfassen – Begleitcode
+# Alertmanager and karma hands-on – Companion Code
 
-Begleitcode zum Buch „Alertmanager und karma zum Anfassen“ von Thomas Zachmann
-(Reihe IT-Trainingslager, it-trainingslager.de).
+Companion code for the book *Alertmanager and karma hands-on* (German edition: *Alertmanager und
+karma zum Anfassen*) by Thomas Zachmann (IT Drills series, itdrills.com / it-trainingslager.de).
+
+Book page: https://itdrills.com/books/karma · German edition: https://it-trainingslager.de/buecher/karma
 
 ```bash
 git clone https://github.com/thomaszachmann/karma-zum-anfassen.git ~/am-lab/code
 ```
 
-## Inhalt
+## Contents
 
-| Ordner | Inhalt |
+| Folder | Contents |
 |---|---|
-| `notes-api/` | Notiz-API in Go mit `/metrics` und eingebauten Störungen (`NOTES_DELAY`, `NOTES_ERROR_RATE`) |
-| `alarm-log/` | kleiner Webhook-Empfänger für den Alertmanager, eine Zeile pro Benachrichtigung |
-| `loesung/endstand/` | alle Dateien des Labs `~/am-lab` nach Tag 15 |
-| `loesung/pruefung/` | dasselbe nach der Abschlussprüfung (Anhang B) |
+| `notes-api/` | notes API in Go with `/metrics` and built-in faults (`NOTES_DELAY`, `NOTES_ERROR_RATE`) |
+| `alarm-log/` | small webhook receiver for Alertmanager, one line per notification |
+| `loesung/endstand/` | all files of the `~/am-lab` lab after Day 15 |
+| `loesung/pruefung/` | the same after the final exam (Appendix B) |
 
-In den Lösungen steht die Adresse der Test-VM `172.16.0.61`. Setze deine eigene ein.
-Alle Passwörter und Schlüssel sind reine Lab-Werte (`lab-…-123`) und dürfen nie
-produktiv verwendet werden.
+The solutions contain the address of the test VM `172.16.0.61`. Substitute your own.
+All passwords and keys are lab values only (`lab-…-123`) and must never be used in
+production.
 
-## Versionen
+## Versions
 
 Prometheus 3.16.0, Alertmanager 0.35.0, karma v0.134, Postgres 18.7, Mailpit 1.33.1,
 Caddy 2.11.9, k3s v1.37.2+k3s1, kube-prometheus-stack 93.3.0.
 
-## Lizenz
+## License
 
-Der Code steht unter der MIT-Lizenz (siehe `LICENSE`). Die Texte des Buchs sind davon
-ausgenommen.
+The code is licensed under the MIT license (see `LICENSE`). The text of the book is
+excluded.
